@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+html {
+    background-color: #0f172a;
+}
+
+body {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+#root {
+    width: 100vw;
+    height: 100vh;
+    min-width: 0;
+    overflow: hidden;
+    background-color: #0f172a;
+}
+
+button,
+select,
+input,
+textarea,
+a {
+    --wails-draggable: no-drag;
+}
+
+.app-shell {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+}
+
+.adaptive-token-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 0.5rem;
+}
+
+.adaptive-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 0.5rem;
+}
+
+.adaptive-action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 0.5rem;
+}
