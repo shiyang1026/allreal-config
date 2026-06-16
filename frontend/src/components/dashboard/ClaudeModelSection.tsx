@@ -23,15 +23,17 @@ export default function ClaudeModelSection({
   if (!visible) return null
 
   return (
-    <section>
-      <div className="flex items-center justify-between mb-2">
+    <section className="section-block">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <button
           type="button"
           onClick={onToggleCollapsed}
-          className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+          className="group text-left"
         >
-          <span>Claude Code 模型</span>
-          <span className={`text-slate-500 transition-transform ${collapsed ? '-rotate-90' : ''}`}>⌄</span>
+          <span className="flex items-center gap-2">
+            <span className="section-title group-hover:text-slate-100">Claude Code 模型</span>
+            <span className={`text-slate-500 transition-transform ${collapsed ? '-rotate-90' : ''}`}>⌄</span>
+          </span>
         </button>
         {loading && !collapsed && <span className="text-xs text-slate-500">加载中...</span>}
       </div>
@@ -84,8 +86,8 @@ function ModelSelect({ label, value, models, disabled, onChange }: {
   }))
 
   return (
-    <label className="block">
-      <span className="block text-xs text-slate-500 mb-1">{label}</span>
+    <label className="block min-w-0">
+      <span className="mb-1 block text-xs text-slate-500">{label}</span>
       <CustomSelect
         value={value}
         options={options}

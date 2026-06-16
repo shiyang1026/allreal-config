@@ -18,7 +18,6 @@ func Get() *apptypes.ConfigStatus {
 	status := &apptypes.ConfigStatus{}
 	readClaudeStatus(status)
 	readCodexStatus(status)
-	status.CCSwitchApp = DetectCCSwitch()
 	return status
 }
 

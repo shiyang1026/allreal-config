@@ -23,7 +23,7 @@ export default function CustomSelect({
   const selected = options.find((option) => option.value === value)
   const buttonSize = size === 'sm'
     ? 'h-7 px-2 text-xs rounded-md'
-    : 'h-9 px-2.5 text-xs rounded-lg'
+    : 'h-9 px-2.5 text-xs rounded-md'
 
   useEffect(() => {
     if (!open) return
@@ -56,8 +56,8 @@ export default function CustomSelect({
             setOpen(true)
           }
         }}
-        className={`w-full min-w-0 flex items-center justify-between gap-2 bg-slate-800 border border-slate-700 text-slate-300 outline-none transition-colors
-          hover:border-slate-600 focus:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed ${buttonSize}`}
+        className={`w-full min-w-0 flex items-center justify-between gap-2 bg-slate-900 border border-slate-700 text-slate-300 outline-none transition-colors
+          hover:border-slate-500 focus:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed ${buttonSize}`}
       >
         <span className={`truncate ${selected ? 'text-slate-300' : 'text-slate-500'}`}>
           {selected?.label || placeholder}
@@ -66,39 +66,30 @@ export default function CustomSelect({
       </button>
 
       {open && !disabled && (
-        <>
-          <button
-            type="button"
-            aria-label="关闭选择器"
-            tabIndex={-1}
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 z-40 cursor-default bg-transparent"
-          />
-          <div
-            role="listbox"
-            className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-56 overflow-y-auto rounded-lg border border-slate-600 bg-slate-800 shadow-lg shadow-black/30"
-          >
-            {options.map((option) => {
-              const active = option.value === value
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="option"
-                  aria-selected={active}
-                  onClick={() => choose(option.value)}
-                  className={`w-full min-w-0 px-2.5 py-2 text-left text-xs transition-colors ${
-                    active
-                      ? 'bg-blue-600/25 text-white'
-                      : 'text-slate-300 hover:bg-slate-700'
-                  }`}
-                >
-                  <span className="block truncate">{option.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </>
+        <div
+          role="listbox"
+          className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-56 overflow-y-auto rounded-md border border-slate-600 bg-slate-900"
+        >
+          {options.map((option) => {
+            const active = option.value === value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={active}
+                onClick={() => choose(option.value)}
+                className={`w-full min-w-0 px-2.5 py-2 text-left text-xs transition-colors ${
+                  active
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <span className="block truncate">{option.label}</span>
+              </button>
+            )
+          })}
+        </div>
       )}
     </div>
   )

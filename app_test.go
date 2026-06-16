@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"allreal-config/internal/configfile"
 )
@@ -101,6 +102,17 @@ wire_api = "responses"
 	}
 	if !status.Codex.HasKey {
 		t.Fatalf("Codex.HasKey = false, want true")
+	}
+}
+
+func TestGetConfigStatusOmitsCCSwitch(t *testing.T) {
+	status := NewApp().GetConfigStatus()
+	data, err := json.Marshal(status)
+	if err != nil {
+		t.Fatalf("marshaling status: %v", err)
+	}
+	if strings.Contains(string(data), "cc_switch") {
+		t.Fatalf("config status should not expose cc_switch: %s", data)
 	}
 }
 
@@ -264,6 +276,100 @@ func TestGetClaudeCodeModelsUsesSelectedTokenAgainstAnthropicModelsEndpoint(t *t
 	if models[0].ID != "claude-sonnet-4-6" || models[1].ID != "gpt-5.4" {
 		t.Fatalf("models = %#v", models)
 	}
+}
+
+func TestOpenConfigEditorWindowAllowsOnlyOneRunningEditor(t *testing.T) {
+	homeDir := t.TempDir()
+	t.Setenv("HOME", homeDir)
+	t.Setenv("ALLREAL_CONFIG_PROFILE", "dev")
+
+	oldStarter := startConfigEditorProcess
+	oldFocuser := focusConfigEditorProcess
+	defer func() {
+		startConfigEditorProcess = oldStarter
+		focusConfigEditorProcess = oldFocuser
+	}()
+
+	started := 0
+	focusedPID := 0
+	release := make(chan struct{})
+	waited := make(chan struct{})
+	startConfigEditorProcess = func(fileID string) (configEditorProcess, error) {
+		started++
+		if started > 1 {
+			return fakeConfigEditorProcess{pid: 1000 + started, wait: func() error {
+				select {}
+			}}, nil
+		}
+		return fakeConfigEditorProcess{pid: 1001, wait: func() error {
+			<-release
+			close(waited)
+			return nil
+		}}, nil
+	}
+	focusConfigEditorProcess = func(pid int) error {
+		focusedPID = pid
+		return nil
+	}
+
+	app := NewApp()
+	result, err := app.OpenConfigEditorWindow("claude")
+	if err != nil {
+		t.Fatalf("OpenConfigEditorWindow returned error: %v", err)
+	}
+	if !result.Success {
+		t.Fatalf("first open failed: %s", result.Message)
+	}
+	if started != 1 {
+		t.Fatalf("started = %d, want 1", started)
+	}
+
+	result, err = app.OpenConfigEditorWindow("codex-config")
+	if err != nil {
+		t.Fatalf("second OpenConfigEditorWindow returned error: %v", err)
+	}
+	if !result.Success {
+		t.Fatalf("second open should focus existing editor: %s", result.Message)
+	}
+	if result.Message != "" {
+		t.Fatalf("second open message = %q, want empty implicit focus result", result.Message)
+	}
+	if started != 1 {
+		t.Fatalf("second open started another editor, started = %d", started)
+	}
+	if focusedPID != 1001 {
+		t.Fatalf("focusedPID = %d, want 1001", focusedPID)
+	}
+
+	close(release)
+	<-waited
+	deadline := time.Now().Add(time.Second)
+	for {
+		result, err = app.OpenConfigEditorWindow("codex-config")
+		if err != nil {
+			t.Fatalf("third OpenConfigEditorWindow returned error: %v", err)
+		}
+		if result.Success && started == 2 {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("editor slot was not released, result=%+v started=%d", result, started)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}
+
+type fakeConfigEditorProcess struct {
+	pid  int
+	wait func() error
+}
+
+func (p fakeConfigEditorProcess) Pid() int {
+	return p.pid
+}
+
+func (p fakeConfigEditorProcess) Wait() error {
+	return p.wait()
 }
 
 type roundTripFunc func(*http.Request) (*http.Response, error)

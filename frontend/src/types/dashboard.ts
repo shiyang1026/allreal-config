@@ -12,12 +12,27 @@ export interface Token {
 export interface ConfigStatus {
   claude_code: { configured: boolean; base_url: string; has_key: boolean }
   codex: { configured: boolean; base_url: string; has_key: boolean }
-  cc_switch: { installed: boolean; paths: string[]; polluted: boolean; polluted_info: string[] }
 }
 
 export interface Editor {
   id: string
   name: string
+}
+
+export interface ConfigFileInfo {
+  id: string
+  label: string
+  path: string
+  language: 'json' | 'toml' | string
+  exists: boolean
+}
+
+export interface ConfigFileContent {
+  id: string
+  label: string
+  path: string
+  language: 'json' | 'toml' | string
+  content: string
 }
 
 export interface ModelOption {

@@ -14,18 +14,28 @@ export function GetClaudeCodeModels(arg1:string):Promise<Array<apptypes.ModelOpt
 
 export function GetConfigStatus():Promise<apptypes.ConfigStatus>;
 
+export function GetLaunchContext():Promise<apptypes.LaunchContext>;
+
 export function GetServerURL():Promise<string>;
 
 export function GetTokens():Promise<apptypes.TokenListResponse>;
 
 export function IsLoggedIn():Promise<boolean>;
 
+export function ListConfigFiles():Promise<Array<apptypes.ConfigFileInfo>>;
+
 export function Login(arg1:string,arg2:string,arg3:string):Promise<apptypes.UserInfo>;
 
 export function Logout():Promise<void>;
 
+export function OpenConfigEditorWindow(arg1:string):Promise<apptypes.Result>;
+
 export function OpenConfigFile(arg1:string,arg2:string):Promise<void>;
+
+export function ReadConfigFile(arg1:string):Promise<apptypes.ConfigFileContent>;
 
 export function RevealTokenKey(arg1:number):Promise<string>;
 
-export function UninstallCCSwitch():Promise<apptypes.Result>;
+export function SaveConfigFile(arg1:apptypes.SaveConfigFileRequest):Promise<apptypes.Result>;
+
+export function UpdateServerURL(arg1:string):Promise<apptypes.ServerStatus>;

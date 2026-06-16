@@ -26,6 +26,10 @@ export function GetConfigStatus() {
   return window['go']['main']['App']['GetConfigStatus']();
 }
 
+export function GetLaunchContext() {
+  return window['go']['main']['App']['GetLaunchContext']();
+}
+
 export function GetServerURL() {
   return window['go']['main']['App']['GetServerURL']();
 }
@@ -38,6 +42,10 @@ export function IsLoggedIn() {
   return window['go']['main']['App']['IsLoggedIn']();
 }
 
+export function ListConfigFiles() {
+  return window['go']['main']['App']['ListConfigFiles']();
+}
+
 export function Login(arg1, arg2, arg3) {
   return window['go']['main']['App']['Login'](arg1, arg2, arg3);
 }
@@ -46,14 +54,26 @@ export function Logout() {
   return window['go']['main']['App']['Logout']();
 }
 
+export function OpenConfigEditorWindow(arg1) {
+  return window['go']['main']['App']['OpenConfigEditorWindow'](arg1);
+}
+
 export function OpenConfigFile(arg1, arg2) {
   return window['go']['main']['App']['OpenConfigFile'](arg1, arg2);
+}
+
+export function ReadConfigFile(arg1) {
+  return window['go']['main']['App']['ReadConfigFile'](arg1);
 }
 
 export function RevealTokenKey(arg1) {
   return window['go']['main']['App']['RevealTokenKey'](arg1);
 }
 
-export function UninstallCCSwitch() {
-  return window['go']['main']['App']['UninstallCCSwitch']();
+export function SaveConfigFile(arg1) {
+  return window['go']['main']['App']['SaveConfigFile'](arg1);
+}
+
+export function UpdateServerURL(arg1) {
+  return window['go']['main']['App']['UpdateServerURL'](arg1);
 }

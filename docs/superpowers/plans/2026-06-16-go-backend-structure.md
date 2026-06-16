@@ -4,7 +4,7 @@
 
 **Goal:** Split the Wails backend into maintainable internal packages without changing user-visible behavior.
 
-**Architecture:** Keep `package main` as the Wails facade and move durable responsibilities into `internal` packages. `internal/hubclient` owns AllReal Hub HTTP calls, `internal/configfile` owns local config file reads/writes, `internal/statuscheck` owns local status and cc-switch detection, and `internal/editor` owns editor discovery/opening.
+**Architecture:** Keep `package main` as the Wails facade and move durable responsibilities into `internal` packages. `internal/hubclient` owns AllReal Hub HTTP calls, `internal/configfile` owns local config file reads/writes, `internal/statuscheck` owns local status, and `internal/editor` owns editor discovery/opening.
 
 **Tech Stack:** Go, Wails, standard library HTTP/JSON/TOML, existing React frontend bindings.
 
@@ -48,12 +48,10 @@
 
 **Files:**
 - Create: `internal/statuscheck/status.go`
-- Create: `internal/statuscheck/ccswitch.go`
 - Create: `internal/editor/editor.go`
 - Modify: `app.go`
 
 - [ ] Move config status detection into `statuscheck.Get`.
-- [ ] Move cc-switch detection and uninstall into `statuscheck`.
 - [ ] Move editor discovery/opening into `editor`.
 - [ ] Keep platform-specific behavior exactly as currently implemented.
 

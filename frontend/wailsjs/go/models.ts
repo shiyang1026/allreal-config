@@ -1,23 +1,5 @@
 export namespace apptypes {
 	
-	export class CCSwitch {
-	    installed: boolean;
-	    paths: string[];
-	    polluted: boolean;
-	    polluted_info: string[];
-	
-	    static createFrom(source: any = {}) {
-	        return new CCSwitch(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.installed = source["installed"];
-	        this.paths = source["paths"];
-	        this.polluted = source["polluted"];
-	        this.polluted_info = source["polluted_info"];
-	    }
-	}
 	export class ClaudeCodeConfigRequest {
 	    auth_token: string;
 	    haiku_model: string;
@@ -36,6 +18,46 @@ export namespace apptypes {
 	        this.sonnet_model = source["sonnet_model"];
 	        this.opus_model = source["opus_model"];
 	        this.subagent_model = source["subagent_model"];
+	    }
+	}
+	export class ConfigFileContent {
+	    id: string;
+	    label: string;
+	    path: string;
+	    language: string;
+	    content: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ConfigFileContent(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.label = source["label"];
+	        this.path = source["path"];
+	        this.language = source["language"];
+	        this.content = source["content"];
+	    }
+	}
+	export class ConfigFileInfo {
+	    id: string;
+	    label: string;
+	    path: string;
+	    language: string;
+	    exists: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new ConfigFileInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.label = source["label"];
+	        this.path = source["path"];
+	        this.language = source["language"];
+	        this.exists = source["exists"];
 	    }
 	}
 	export class ConfigState {
@@ -57,7 +79,6 @@ export namespace apptypes {
 	export class ConfigStatus {
 	    claude_code: ConfigState;
 	    codex: ConfigState;
-	    cc_switch: CCSwitch;
 	
 	    static createFrom(source: any = {}) {
 	        return new ConfigStatus(source);
@@ -67,7 +88,6 @@ export namespace apptypes {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.claude_code = this.convertValues(source["claude_code"], ConfigState);
 	        this.codex = this.convertValues(source["codex"], ConfigState);
-	        this.cc_switch = this.convertValues(source["cc_switch"], CCSwitch);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -102,6 +122,20 @@ export namespace apptypes {
 	        this.name = source["name"];
 	    }
 	}
+	export class LaunchContext {
+	    mode: string;
+	    initial_file_id: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LaunchContext(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.mode = source["mode"];
+	        this.initial_file_id = source["initial_file_id"];
+	    }
+	}
 	export class ModelOption {
 	    id: string;
 	    display_name: string;
@@ -128,6 +162,20 @@ export namespace apptypes {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.success = source["success"];
 	        this.message = source["message"];
+	    }
+	}
+	export class SaveConfigFileRequest {
+	    id: string;
+	    content: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SaveConfigFileRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.content = source["content"];
 	    }
 	}
 	export class ServerStatus {

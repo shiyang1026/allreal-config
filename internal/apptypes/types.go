@@ -49,9 +49,8 @@ type SavedAuth struct {
 }
 
 type ConfigStatus struct {
-	ClaudeCode  ConfigState `json:"claude_code"`
-	Codex       ConfigState `json:"codex"`
-	CCSwitchApp CCSwitch    `json:"cc_switch"`
+	ClaudeCode ConfigState `json:"claude_code"`
+	Codex      ConfigState `json:"codex"`
 }
 
 type ConfigState struct {
@@ -60,16 +59,35 @@ type ConfigState struct {
 	HasKey     bool   `json:"has_key"`
 }
 
-type CCSwitch struct {
-	Installed    bool     `json:"installed"`
-	Paths        []string `json:"paths"`
-	Polluted     bool     `json:"polluted"`
-	PollutedInfo []string `json:"polluted_info"`
-}
-
 type Result struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
+}
+
+type ConfigFileInfo struct {
+	ID       string `json:"id"`
+	Label    string `json:"label"`
+	Path     string `json:"path"`
+	Language string `json:"language"`
+	Exists   bool   `json:"exists"`
+}
+
+type ConfigFileContent struct {
+	ID       string `json:"id"`
+	Label    string `json:"label"`
+	Path     string `json:"path"`
+	Language string `json:"language"`
+	Content  string `json:"content"`
+}
+
+type SaveConfigFileRequest struct {
+	ID      string `json:"id"`
+	Content string `json:"content"`
+}
+
+type LaunchContext struct {
+	Mode          string `json:"mode"`
+	InitialFileID string `json:"initial_file_id"`
 }
 
 type ModelOption struct {

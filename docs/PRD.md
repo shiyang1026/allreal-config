@@ -2,10 +2,9 @@
 
 ## 为什么做这个
 
-运营中转站过程中发现两个痛点：
+运营中转站过程中发现一个核心痛点：
 
-1. **用户配置门槛高** — 用户拿到令牌后，还要手动编辑 `~/.claude/settings.json`、`~/.codex/config.toml` 等配置文件，对非技术用户不友好。
-2. **cc-switch 污染配置** — 大量用户使用过 cc-switch，该工具全量覆写 `settings.json` 导致用户的 hooks、plugins、permissions 等字段丢失（[issue #3946](https://github.com/farion1231/cc-switch/issues/3946)），用户手动修复后再被覆写，形成死循环。
+**用户配置门槛高** — 用户拿到令牌后，还要手动编辑 `~/.claude/settings.json`、`~/.codex/config.toml` 等配置文件，对非技术用户不友好。
 
 所以做了这个桌面 App：登录即可一键配置，彻底告别手动编辑。
 
@@ -19,8 +18,6 @@
 | 令牌选择 | 拉取用户令牌列表，选择要用于配置的令牌 |
 | 配置 Claude Code | 合并写入 `~/.claude/settings.json` 的 `env` 块（`ANTHROPIC_BASE_URL` + `ANTHROPIC_AUTH_TOKEN`），不碰其他字段 |
 | 配置 CodeX | 合并写入 `~/.codex/config.toml`（`openai_base_url`），设置 `OPENAI_API_KEY` 环境变量 |
-| cc-switch 检测 | 扫描安装路径 + 检测 `settings.json` 字段缺失（hooks/plugins/permissions/statusLine） |
-| cc-switch 卸载 | 删除应用本体 + 缓存数据目录 |
 | 配置备份 | 每次写入前自动备份原文件（`.bak.{timestamp}`） |
 
 ### v1.1 规划
@@ -50,7 +47,7 @@
 
 ## 关键设计决策
 
-**配置写入必须做字段级合并，不能全量覆写** — 这是 cc-switch 的核心问题，也是我们与它的本质区别。读取 → 合并目标字段 → 写回，保留用户所有其他配置不动。
+**配置写入必须做字段级合并，不能全量覆写** — 读取 → 合并目标字段 → 写回，保留用户所有其他配置不动。
 
 ---
 
@@ -60,7 +57,7 @@
 |------|------|
 | Wails 项目骨架 | ✅ 完成 |
 | Tailwind CSS 配置 | ✅ 完成 |
-| Go 后端（登录、令牌、配置读写、cc-switch） | ✅ 完成 |
+| Go 后端（登录、令牌、配置读写） | ✅ 完成 |
 | 前端页面（登录页 + 主页） | ✅ 完成 |
 | 编译运行 | ✅ `wails dev` 通过 |
 | 本机实际测试 | ⏳ 待测 |

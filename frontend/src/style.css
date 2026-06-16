@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 html {
-    background-color: #0f172a;
+    background-color: #0b1120;
 }
 
 body {
@@ -9,7 +9,7 @@ body {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    background-color: #0f172a;
+    background-color: #0b1120;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
@@ -18,8 +18,38 @@ body {
     width: 100vw;
     height: 100vh;
     min-width: 0;
+    min-height: 0;
     overflow: hidden;
-    background-color: #0f172a;
+    background-color: #0b1120;
+}
+
+* {
+    scrollbar-color: rgb(71 85 105 / 0.55) transparent;
+    scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: rgb(71 85 105 / 0.46);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(100 116 139 / 0.72);
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 button,
@@ -32,14 +62,32 @@ a {
 
 .app-shell {
     width: 100%;
-    max-width: 1280px;
+    max-width: 1120px;
     margin-inline: auto;
+}
+
+.section-block {
+    border-top: 1px solid rgb(30 41 59);
+    padding-top: 1rem;
+}
+
+.section-title {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    color: rgb(203 213 225);
+}
+
+.section-description {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: rgb(100 116 139);
 }
 
 .adaptive-token-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-    gap: 0.5rem;
+    grid-template-columns: 1fr;
+    gap: 1px;
 }
 
 .adaptive-form-grid {
@@ -50,6 +98,102 @@ a {
 
 .adaptive-action-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
     gap: 0.5rem;
+}
+
+.config-editor-codemirror,
+.config-editor-codemirror .cm-editor,
+.config-editor-codemirror .cm-scroller {
+    height: 100%;
+}
+
+.config-editor-codemirror .cm-editor {
+    font-size: 13px;
+    background-color: #050816;
+    outline: none;
+}
+
+.config-editor-codemirror .cm-focused {
+    outline: none;
+}
+
+.config-editor-codemirror .cm-gutters {
+    background-color: rgb(15 23 42 / 0.34);
+    border-right-color: rgb(30 41 59);
+}
+
+.config-editor-codemirror .cm-activeLine,
+.config-editor-codemirror .cm-activeLineGutter {
+    background-color: rgb(30 41 59 / 0.48);
+}
+
+.config-editor-file-row + .config-editor-file-row {
+    margin-top: -1px;
+}
+
+.config-editor-loading-state {
+    padding: 1rem 1.25rem;
+    background:
+        linear-gradient(90deg, rgb(15 23 42 / 0.24) 0 1px, transparent 1px 100%) 0 0 / 52px 100%,
+        #050816;
+}
+
+.config-editor-skeleton,
+.config-editor-skeleton-row {
+    position: relative;
+    overflow: hidden;
+    background: rgb(30 41 59 / 0.66);
+}
+
+.config-editor-skeleton::after,
+.config-editor-skeleton-row::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(148 163 184 / 0.14), transparent);
+    animation: config-editor-skeleton-sheen 1.25s ease-out infinite;
+}
+
+.config-editor-skeleton-row {
+    height: 0.75rem;
+}
+
+.config-editor-loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(5 8 22 / 0.58);
+    color: rgb(148 163 184);
+    font-size: 0.8125rem;
+    backdrop-filter: blur(2px);
+    animation: config-editor-overlay-in 140ms ease-out;
+    pointer-events: none;
+}
+
+@keyframes config-editor-overlay-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes config-editor-skeleton-sheen {
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .config-editor-loading-overlay,
+    .config-editor-skeleton::after,
+    .config-editor-skeleton-row::after {
+        animation-duration: 1ms;
+        animation-iteration-count: 1;
+    }
 }

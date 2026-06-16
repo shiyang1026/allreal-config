@@ -7,7 +7,6 @@ AllReal Config 是一个基于 Wails + React + TypeScript 的桌面配置工具�
 - 配置 Claude Code
 - 配置 Codex
 - 选择中转站令牌并拉取该令牌可用模型
-- 检测并清理 cc-switch
 - 打开本机配置文件
 
 ## 开发环境

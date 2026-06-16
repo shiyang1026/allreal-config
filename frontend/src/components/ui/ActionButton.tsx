@@ -7,10 +7,10 @@ interface Props {
 }
 
 const colorMap: Record<string, string> = {
-  blue: 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20',
-  emerald: 'bg-emerald-600/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-600/20',
-  amber: 'bg-amber-600/10 border-amber-500/30 text-amber-400 hover:bg-amber-600/20',
-  red: 'bg-red-600/10 border-red-500/30 text-red-400 hover:bg-red-600/20',
+  blue: 'bg-blue-600 text-white hover:bg-blue-500 border-blue-600',
+  emerald: 'bg-slate-900 text-emerald-300 hover:bg-slate-800 border-slate-700',
+  amber: 'bg-slate-900 text-amber-300 hover:bg-slate-800 border-slate-700',
+  red: 'bg-slate-900 text-red-300 hover:bg-slate-800 border-slate-700',
 }
 
 export default function ActionButton({ label, onClick, loading, disabled, color }: Props) {
@@ -18,7 +18,7 @@ export default function ActionButton({ label, onClick, loading, disabled, color 
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`px-3 py-3 rounded-lg text-sm border transition-colors
+      className={`px-3 py-2 rounded-md text-sm border text-left transition-colors
                   disabled:opacity-40 disabled:cursor-not-allowed ${colorMap[color] || colorMap.blue}`}
     >
       {loading ? '处理中...' : label}
