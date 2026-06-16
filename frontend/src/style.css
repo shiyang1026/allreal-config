@@ -102,12 +102,6 @@ a {
     gap: 0.5rem;
 }
 
-.config-editor-codemirror,
-.config-editor-codemirror .cm-editor,
-.config-editor-codemirror .cm-scroller {
-    height: 100%;
-}
-
 .config-editor-codemirror .cm-editor {
     font-size: 13px;
     background-color: #050816;

@@ -16,6 +16,19 @@ interface Props {
 }
 
 const tomlLanguage = StreamLanguage.define(toml)
+// ponytail: pixel height via ResizeObserver — percentage chains break in Wails WebKit webview
+function useContainerHeight() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [h, setH] = useState(0)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => setH(e.contentRect.height))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  return [ref, h] as const
+}
 
 export default function ConfigEditor({ initialFileID, onClose, onSaved, onError }: Props) {
   const [files, setFiles] = useState<ConfigFileInfo[]>([])
@@ -30,6 +43,7 @@ export default function ConfigEditor({ initialFileID, onClose, onSaved, onError 
   const hasLoadedContentRef = useRef(false)
   const [saving, setSaving] = useState(false)
   const [localError, setLocalError] = useState('')
+  const [editorContainerRef, editorHeight] = useContainerHeight()
 
   useEffect(() => {
     let cancelled = false
@@ -244,12 +258,13 @@ export default function ConfigEditor({ initialFileID, onClose, onSaved, onError 
           </div>
         </aside>
 
-        <section className="min-h-0 bg-[#050816]" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
-          <div className="relative h-full overflow-hidden bg-[#050816]">
-            <div className="config-editor-codemirror h-full">
+        <section className="min-h-0 flex flex-col overflow-hidden bg-[#050816]" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+          <div ref={editorContainerRef} className="relative flex-1 min-h-0 bg-[#050816]">
+            <div className="config-editor-codemirror absolute inset-0">
+              {editorHeight > 0 && (
               <CodeMirror
                 value={content}
-                height="100%"
+                height={`${editorHeight}px`}
                 theme={oneDark}
                 extensions={extensions}
                 basicSetup={{
@@ -263,6 +278,7 @@ export default function ConfigEditor({ initialFileID, onClose, onSaved, onError 
                   setDirty(true)
                 }}
               />
+              )}
             </div>
             {showInitialLoadingState && (
               <div className="config-editor-loading-state absolute inset-0" aria-label="正在加载配置内容">
