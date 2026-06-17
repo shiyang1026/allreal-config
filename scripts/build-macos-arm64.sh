@@ -18,12 +18,6 @@ cd "$ROOT_DIR"
 mkdir -p "$BUILD_DIR"
 rm -rf "$APP_DIR"
 
-(
-  cd frontend
-  bun install --frozen-lockfile
-  bun run build
-)
-
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
 GOCACHE="${GOCACHE:-$ROOT_DIR/.tmp-go-cache}" \

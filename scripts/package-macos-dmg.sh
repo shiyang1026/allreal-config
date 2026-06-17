@@ -23,6 +23,7 @@ cp -R "$APP_PATH" "$STAGE_DIR/$APP_NAME.app"
 ln -s /Applications "$STAGE_DIR/Applications"
 mkdir -p "$BACKGROUND_DIR"
 go run scripts/make-dmg-background.go "$BACKGROUND_PATH"
+touch "$STAGE_DIR/.metadata_never_index"
 
 rm -f "$RW_DMG" "$FINAL_DMG"
 hdiutil create \
