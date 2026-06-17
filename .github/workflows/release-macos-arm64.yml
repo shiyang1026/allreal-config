@@ -1,0 +1,186 @@
+name: Release macOS arm64
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, for example v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish macOS arm64
+    runs-on: macos-15
+
+    env:
+      APP_NAME: AllReal Config
+      BINARY_NAME: allreal-config
+      APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME}"
+          fi
+
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Version must look like v0.1.0 or v0.1.0-beta.1" >&2
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_without_v=${VERSION#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: bun install --frozen-lockfile
+
+      - name: Run Go tests
+        run: go test -count=1 ./...
+
+      - name: Validate Apple signing configuration
+        shell: bash
+        run: |
+          HAS_NOTARY=0
+          if [[ -n "$APPLE_ID" || -n "$APPLE_TEAM_ID" || -n "$APPLE_APP_SPECIFIC_PASSWORD" ]]; then
+            HAS_NOTARY=1
+          fi
+
+          if [[ "$HAS_NOTARY" == "1" ]]; then
+            test -n "$APPLE_CERTIFICATE_BASE64"
+            test -n "$APPLE_CERTIFICATE_PASSWORD"
+            test -n "$KEYCHAIN_PASSWORD"
+            test -n "$APPLE_SIGNING_IDENTITY"
+            test -n "$APPLE_ID"
+            test -n "$APPLE_TEAM_ID"
+            test -n "$APPLE_APP_SPECIFIC_PASSWORD"
+          fi
+
+      - name: Build macOS arm64 app
+        env:
+          VERSION: ${{ steps.version.outputs.version_without_v }}
+        run: bash scripts/build-macos-arm64.sh
+
+      - name: Import Apple signing certificate
+        if: env.APPLE_CERTIFICATE_BASE64 != ''
+        shell: bash
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/developer-id.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+      - name: Sign macOS app
+        if: env.APPLE_SIGNING_IDENTITY != ''
+        shell: bash
+        run: |
+          APP_PATH="build/bin/${BINARY_NAME}.app"
+          codesign --force --deep --options runtime --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$APP_PATH"
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
+      - name: Create release archives
+        id: package
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ZIP_NAME="${BINARY_NAME}-${VERSION}-mac-arm64.zip"
+          DMG_NAME="${BINARY_NAME}-${VERSION}-mac-arm64.dmg"
+          APP_PATH="build/bin/${BINARY_NAME}.app"
+
+          test -d "$APP_PATH"
+          mkdir -p dist
+          ditto -c -k --keepParent "$APP_PATH" "dist/$ZIP_NAME"
+          VERSION="$VERSION" bash scripts/package-macos-dmg.sh
+
+          echo "zip_name=$ZIP_NAME" >> "$GITHUB_OUTPUT"
+          echo "dmg_name=$DMG_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Notarize macOS dmg
+        if: env.APPLE_ID != '' && env.APPLE_TEAM_ID != '' && env.APPLE_APP_SPECIFIC_PASSWORD != ''
+        shell: bash
+        run: |
+          DMG_PATH="dist/${{ steps.package.outputs.dmg_name }}"
+          xcrun notarytool submit "$DMG_PATH" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --wait
+          xcrun stapler staple "$DMG_PATH"
+
+      - name: Generate checksums and update manifest
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          VERSION_WITHOUT_V="${{ steps.version.outputs.version_without_v }}"
+          ZIP_NAME="${{ steps.package.outputs.zip_name }}"
+          DMG_NAME="${{ steps.package.outputs.dmg_name }}"
+
+          shasum -a 256 "dist/$ZIP_NAME" "dist/$DMG_NAME" > dist/checksums.txt
+          DMG_SHA256="$(shasum -a 256 "dist/$DMG_NAME" | awk '{print $1}')"
+          ZIP_SHA256="$(shasum -a 256 "dist/$ZIP_NAME" | awk '{print $1}')"
+
+          cat > dist/latest-mac-arm64.json <<JSON
+          {
+            "version": "$VERSION_WITHOUT_V",
+            "channel": "stable",
+            "platform": "darwin/arm64",
+            "release_url": "https://github.com/${{ github.repository }}/releases/tag/$VERSION",
+            "artifacts": {
+              "dmg": {
+                "name": "$DMG_NAME",
+                "url": "https://github.com/${{ github.repository }}/releases/download/$VERSION/$DMG_NAME",
+                "sha256": "$DMG_SHA256"
+              },
+              "zip": {
+                "name": "$ZIP_NAME",
+                "url": "https://github.com/${{ github.repository }}/releases/download/$VERSION/$ZIP_NAME",
+                "sha256": "$ZIP_SHA256"
+              }
+            }
+          }
+          JSON
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: AllReal Config ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            dist/*

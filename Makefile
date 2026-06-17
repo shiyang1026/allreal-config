@@ -9,7 +9,7 @@ dev-prod:
 	wails dev
 
 build:
-	wails build
+	GOCACHE=$(GO_CACHE) bash scripts/build-macos-arm64.sh
 
 test:
 	GOCACHE=$(GO_CACHE) go test -count=1 ./...
