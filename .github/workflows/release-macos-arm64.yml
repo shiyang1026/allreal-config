@@ -123,16 +123,13 @@ jobs:
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          ZIP_NAME="${BINARY_NAME}-${VERSION}-mac-arm64.zip"
           DMG_NAME="${BINARY_NAME}-${VERSION}-mac-arm64.dmg"
           APP_PATH="build/bin/${BINARY_NAME}.app"
 
           test -d "$APP_PATH"
           mkdir -p dist
-          ditto -c -k --keepParent "$APP_PATH" "dist/$ZIP_NAME"
           VERSION="$VERSION" bash scripts/package-macos-dmg.sh
 
-          echo "zip_name=$ZIP_NAME" >> "$GITHUB_OUTPUT"
           echo "dmg_name=$DMG_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Notarize macOS dmg
@@ -146,39 +143,6 @@ jobs:
             --password "$APPLE_APP_SPECIFIC_PASSWORD" \
             --wait
           xcrun stapler staple "$DMG_PATH"
-
-      - name: Generate checksums and update manifest
-        shell: bash
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          VERSION_WITHOUT_V="${{ steps.version.outputs.version_without_v }}"
-          ZIP_NAME="${{ steps.package.outputs.zip_name }}"
-          DMG_NAME="${{ steps.package.outputs.dmg_name }}"
-
-          shasum -a 256 "dist/$ZIP_NAME" "dist/$DMG_NAME" > dist/checksums.txt
-          DMG_SHA256="$(shasum -a 256 "dist/$DMG_NAME" | awk '{print $1}')"
-          ZIP_SHA256="$(shasum -a 256 "dist/$ZIP_NAME" | awk '{print $1}')"
-
-          cat > dist/latest-mac-arm64.json <<JSON
-          {
-            "version": "$VERSION_WITHOUT_V",
-            "channel": "stable",
-            "platform": "darwin/arm64",
-            "release_url": "https://github.com/${{ github.repository }}/releases/tag/$VERSION",
-            "artifacts": {
-              "dmg": {
-                "name": "$DMG_NAME",
-                "url": "https://github.com/${{ github.repository }}/releases/download/$VERSION/$DMG_NAME",
-                "sha256": "$DMG_SHA256"
-              },
-              "zip": {
-                "name": "$ZIP_NAME",
-                "url": "https://github.com/${{ github.repository }}/releases/download/$VERSION/$ZIP_NAME",
-                "sha256": "$ZIP_SHA256"
-              }
-            }
-          }
-          JSON
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
