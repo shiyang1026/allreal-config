@@ -65,6 +65,10 @@ jobs:
         working-directory: frontend
         run: bun install --frozen-lockfile
 
+      - name: Build frontend
+        working-directory: frontend
+        run: bun run build
+
       - name: Run Go tests
         run: go test -count=1 ./...
 
