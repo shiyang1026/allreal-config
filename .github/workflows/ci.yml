@@ -11,8 +11,11 @@ permissions:
 
 jobs:
   test:
-    name: Test and build
-    runs-on: macos-15
+    name: Test and build (${{ matrix.os }})
+    strategy:
+      matrix:
+        os: [macos-15, windows-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -39,4 +42,10 @@ jobs:
         run: go test -count=1 ./...
 
       - name: Build macOS arm64 app
+        if: runner.os == 'macOS'
         run: bash scripts/build-macos-arm64.sh
+
+      - name: Build Windows amd64 app
+        if: runner.os == 'Windows'
+        shell: bash
+        run: bash scripts/build-windows-amd64.sh
