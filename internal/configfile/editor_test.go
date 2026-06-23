@@ -10,6 +10,7 @@ import (
 func TestEditableFilesUseActiveDevProfile(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
+	t.Setenv("USERPROFILE", homeDir)
 	t.Setenv("ALLREAL_CONFIG_PROFILE", "dev")
 
 	files := ListEditableFiles()
@@ -50,6 +51,7 @@ func TestEditableFilesUseActiveDevProfile(t *testing.T) {
 func TestSaveEditableFileValidatesJSONAndDoesNotTouchProduction(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
+	t.Setenv("USERPROFILE", homeDir)
 	t.Setenv("ALLREAL_CONFIG_PROFILE", "dev")
 
 	productionPath := filepath.Join(homeDir, ".claude", "settings.json")
@@ -98,6 +100,7 @@ func TestSaveEditableFileValidatesJSONAndDoesNotTouchProduction(t *testing.T) {
 func TestSaveEditableFileValidatesTOMLAndRejectsUnknownID(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
+	t.Setenv("USERPROFILE", homeDir)
 	t.Setenv("ALLREAL_CONFIG_PROFILE", "dev")
 
 	result, err := SaveEditableFile("codex-config", `model_provider = `)

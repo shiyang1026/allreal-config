@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	"allreal-config/internal/apptypes"
 	"allreal-config/internal/configfile"
@@ -36,27 +37,35 @@ var knownEditors = []struct {
 }
 
 func AvailableEditors() []apptypes.Editor {
-	homeDir, _ := os.UserHomeDir()
 	editors := []apptypes.Editor{{ID: "default", Name: "默认应用"}}
-	appDirs := []string{"/Applications", filepath.Join(homeDir, "Applications"), "/System/Applications"}
 	for _, e := range knownEditors {
-		found := false
-		for _, dir := range appDirs {
-			if _, err := os.Stat(filepath.Join(dir, e.macApp+".app")); err == nil {
-				found = true
-				break
-			}
-		}
-		if !found && e.cmd != "" {
-			if _, err := exec.LookPath(e.cmd); err == nil {
-				found = true
-			}
-		}
-		if found {
+		if isEditorAvailable(e.cmd, e.macApp) {
 			editors = append(editors, apptypes.Editor{ID: e.id, Name: e.name})
 		}
 	}
 	return editors
+}
+
+func isEditorAvailable(cmd, macApp string) bool {
+	if cmd != "" {
+		if _, err := exec.LookPath(cmd); err == nil {
+			return true
+		}
+	}
+	if runtime.GOOS == "darwin" && macApp != "" {
+		return isMacAppInstalled(macApp)
+	}
+	return false
+}
+
+func isMacAppInstalled(appName string) bool {
+	homeDir, _ := os.UserHomeDir()
+	for _, dir := range []string{"/Applications", filepath.Join(homeDir, "Applications"), "/System/Applications"} {
+		if _, err := os.Stat(filepath.Join(dir, appName+".app")); err == nil {
+			return true
+		}
+	}
+	return false
 }
 
 func OpenConfigFile(target string, editorID string) error {
@@ -83,9 +92,20 @@ func OpenConfigFile(target string, editorID string) error {
 	return nil
 }
 
+func openWithDefault(path string) error {
+	switch runtime.GOOS {
+	case "darwin":
+		return exec.Command("open", path).Start()
+	case "windows":
+		return exec.Command("cmd", "/c", "start", "", path).Start()
+	default:
+		return exec.Command("xdg-open", path).Start()
+	}
+}
+
 func openFileWith(path, editorID string) error {
 	if editorID == "" || editorID == "default" {
-		return exec.Command("open", path).Start()
+		return openWithDefault(path)
 	}
 	for _, e := range knownEditors {
 		if e.id == editorID {
@@ -94,10 +114,10 @@ func openFileWith(path, editorID string) error {
 					return exec.Command(e.cmd, path).Start()
 				}
 			}
-			if e.macApp != "" {
+			if runtime.GOOS == "darwin" && e.macApp != "" {
 				return exec.Command("open", "-a", e.macApp, path).Start()
 			}
 		}
 	}
-	return exec.Command("open", path).Start()
+	return openWithDefault(path)
 }

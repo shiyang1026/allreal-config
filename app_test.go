@@ -17,6 +17,7 @@ import (
 func TestConfigureCodexWritesSelectedProviderAndOpenAIKey(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
+	t.Setenv("USERPROFILE", homeDir)
 
 	app := NewApp()
 	app.serverURL = "https://cn.allrealai.com"
@@ -71,6 +72,7 @@ func TestConfigureCodexWritesSelectedProviderAndOpenAIKey(t *testing.T) {
 func TestGetConfigStatusDetectsCodexOpenAIKey(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
+	t.Setenv("USERPROFILE", homeDir)
 	codexDir := filepath.Join(homeDir, ".codex")
 	if err := os.MkdirAll(codexDir, 0700); err != nil {
 		t.Fatalf("creating .codex: %v", err)
@@ -119,6 +121,7 @@ func TestGetConfigStatusOmitsCCSwitch(t *testing.T) {
 func TestConfigureClaudeCodeResetsSettingsWithSelectedModels(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
+	t.Setenv("USERPROFILE", homeDir)
 	claudeDir := filepath.Join(homeDir, ".claude")
 	if err := os.MkdirAll(claudeDir, 0700); err != nil {
 		t.Fatalf("creating .claude: %v", err)
@@ -183,6 +186,7 @@ func TestConfigureClaudeCodeResetsSettingsWithSelectedModels(t *testing.T) {
 func TestConfigureClaudeCodeDevProfileWritesDevSettingsWithoutTouchingProduction(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
+	t.Setenv("USERPROFILE", homeDir)
 	t.Setenv("ALLREAL_CONFIG_PROFILE", "dev")
 	claudeDir := filepath.Join(homeDir, ".claude")
 	if err := os.MkdirAll(claudeDir, 0700); err != nil {
@@ -281,6 +285,7 @@ func TestGetClaudeCodeModelsUsesSelectedTokenAgainstAnthropicModelsEndpoint(t *t
 func TestOpenConfigEditorWindowAllowsOnlyOneRunningEditor(t *testing.T) {
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
+	t.Setenv("USERPROFILE", homeDir)
 	t.Setenv("ALLREAL_CONFIG_PROFILE", "dev")
 
 	oldStarter := startConfigEditorProcess
