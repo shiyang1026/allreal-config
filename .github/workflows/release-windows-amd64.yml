@@ -68,6 +68,9 @@ jobs:
         shell: bash
         run: bash scripts/build-windows-amd64.sh
 
+      - name: Install NSIS
+        run: choco install nsis -y
+
       - name: Package Windows release
         shell: bash
         env:
