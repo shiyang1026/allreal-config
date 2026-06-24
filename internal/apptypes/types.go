@@ -49,14 +49,27 @@ type SavedAuth struct {
 }
 
 type ConfigStatus struct {
-	ClaudeCode ConfigState `json:"claude_code"`
-	Codex      ConfigState `json:"codex"`
+	ClaudeCode     ConfigState     `json:"claude_code"`
+	Codex          ConfigState     `json:"codex"`
+	ShellConflicts []ShellConflict `json:"shell_conflicts"`
 }
 
 type ConfigState struct {
 	Configured bool   `json:"configured"`
 	BaseURL    string `json:"base_url"`
 	HasKey     bool   `json:"has_key"`
+}
+
+type ShellConflict struct {
+	FileID  string       `json:"file_id"`
+	Label   string       `json:"label"`
+	Path    string       `json:"path"`
+	Matches []ShellMatch `json:"matches"`
+}
+
+type ShellMatch struct {
+	Variable string `json:"variable"`
+	Line     int    `json:"line"`
 }
 
 type Result struct {

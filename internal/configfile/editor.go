@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"allreal-config/internal/apptypes"
+	"allreal-config/internal/envscan"
 
 	"github.com/BurntSushi/toml"
 )
@@ -82,11 +83,20 @@ func SaveEditableFile(id string, content string) (*apptypes.Result, error) {
 
 func editableFiles() []editableFile {
 	paths := ActivePaths()
-	return []editableFile{
+	files := []editableFile{
 		{id: "claude", label: "Claude Code", path: paths.ClaudeSettings, language: "json"},
 		{id: "codex-config", label: "Codex 配置", path: paths.CodexConfig, language: "toml"},
 		{id: "codex-auth", label: "Codex 认证", path: paths.CodexAuth, language: "json"},
 	}
+	for _, spec := range envscan.ShellFiles() {
+		files = append(files, editableFile{
+			id:       spec.ID,
+			label:    spec.Label,
+			path:     spec.Path,
+			language: spec.Language,
+		})
+	}
+	return files
 }
 
 func findEditableFile(id string) (editableFile, error) {

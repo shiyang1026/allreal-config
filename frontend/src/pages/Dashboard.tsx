@@ -34,6 +34,7 @@ export default function Dashboard({ onLogout }: Props) {
             refreshing={dashboard.refreshingStatus}
             onOpenClaude={dashboard.openClaudeConfig}
             onOpenCodex={dashboard.openCodexConfig}
+            onOpenShell={dashboard.openShellFile}
             onRefresh={dashboard.refreshStatus}
           />
 

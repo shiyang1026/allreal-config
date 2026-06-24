@@ -9,9 +9,22 @@ export interface Token {
   used_quota: number
 }
 
+export interface ShellMatch {
+  variable: string
+  line: number
+}
+
+export interface ShellConflict {
+  file_id: string
+  label: string
+  path: string
+  matches: ShellMatch[]
+}
+
 export interface ConfigStatus {
   claude_code: { configured: boolean; base_url: string; has_key: boolean }
   codex: { configured: boolean; base_url: string; has_key: boolean }
+  shell_conflicts: ShellConflict[]
 }
 
 export interface Editor {

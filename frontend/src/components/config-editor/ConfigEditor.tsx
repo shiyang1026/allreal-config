@@ -3,6 +3,9 @@ import CodeMirror from '@uiw/react-codemirror'
 import { json } from '@codemirror/lang-json'
 import { StreamLanguage } from '@codemirror/language'
 import { toml } from '@codemirror/legacy-modes/mode/toml'
+import { shell } from '@codemirror/legacy-modes/mode/shell'
+import { Decoration, EditorView, ViewPlugin, type DecorationSet, type ViewUpdate } from '@codemirror/view'
+import { RangeSetBuilder } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { ListConfigFiles, ReadConfigFile, SaveConfigFile } from '../../../wailsjs/go/main/App'
 import type { ConfigFileContent, ConfigFileInfo } from '../../types/dashboard'
@@ -16,6 +19,40 @@ interface Props {
 }
 
 const tomlLanguage = StreamLanguage.define(toml)
+const shellLanguage = StreamLanguage.define(shell)
+
+const ENV_CONFLICT_RE = /(?:^|[\s;(])(?:\$env:)?(ANTHROPIC_[A-Z0-9_]+|OPENAI_[A-Z0-9_]+)\s*=/
+const conflictLineDecoration = Decoration.line({ class: 'cm-env-conflict-line' })
+
+function buildConflictDecorations(view: EditorView): DecorationSet {
+  const builder = new RangeSetBuilder<Decoration>()
+  const doc = view.state.doc
+  for (let i = 1; i <= doc.lines; i++) {
+    const line = doc.line(i)
+    const text = line.text
+    const trimmed = text.replace(/^[ \t]+/, '')
+    if (trimmed.startsWith('#')) continue
+    if (ENV_CONFLICT_RE.test(text)) {
+      builder.add(line.from, line.from, conflictLineDecoration)
+    }
+  }
+  return builder.finish()
+}
+
+const envConflictHighlighter = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet
+    constructor(view: EditorView) {
+      this.decorations = buildConflictDecorations(view)
+    }
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = buildConflictDecorations(update.view)
+      }
+    }
+  },
+  { decorations: (v) => v.decorations },
+)
 // ponytail: pixel height via ResizeObserver — percentage chains break in Wails WebKit webview
 function useContainerHeight() {
   const ref = useRef<HTMLDivElement>(null)
@@ -117,6 +154,9 @@ export default function ConfigEditor({ initialFileID, onClose, onSaved, onError 
 
   const extensions = useMemo(() => {
     if (currentFile?.language === 'toml') return [tomlLanguage]
+    if (currentFile?.language === 'shell' || currentFile?.language === 'powershell') {
+      return [shellLanguage, envConflictHighlighter]
+    }
     return [json()]
   }, [currentFile?.language])
 
@@ -227,7 +267,7 @@ export default function ConfigEditor({ initialFileID, onClose, onSaved, onError 
       )}
 
       <main className="flex-1 min-h-0 grid grid-cols-[260px_minmax(0,1fr)] bg-[#0b1120]">
-        <aside className="min-h-0 border-r border-slate-800 bg-[#0f172a] py-5" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
+        <aside className="min-h-0 overflow-y-auto border-r border-slate-800 bg-[#0f172a] py-5" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
           <div className="mb-3 px-5 text-sm font-semibold text-slate-300">配置文件</div>
           <div>
             {loadingFiles && files.length === 0 ? (

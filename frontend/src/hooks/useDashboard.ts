@@ -315,6 +315,7 @@ export function useDashboard(onLogout: () => void) {
     showError: (text: string) => showMessage('error', text),
     openClaudeConfig: () => openConfigEditor('claude'),
     openCodexConfig: () => openConfigEditor('codex-config'),
+    openShellFile: (fileID: string) => openConfigEditor(fileID),
   }
 }
 

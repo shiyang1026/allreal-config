@@ -8,6 +8,7 @@ import (
 
 	"allreal-config/internal/apptypes"
 	"allreal-config/internal/configfile"
+	"allreal-config/internal/envscan"
 
 	"github.com/BurntSushi/toml"
 )
@@ -18,6 +19,7 @@ func Get() *apptypes.ConfigStatus {
 	status := &apptypes.ConfigStatus{}
 	readClaudeStatus(status)
 	readCodexStatus(status)
+	status.ShellConflicts = envscan.Scan()
 	return status
 }
 

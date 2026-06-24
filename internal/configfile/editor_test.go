@@ -14,8 +14,8 @@ func TestEditableFilesUseActiveDevProfile(t *testing.T) {
 	t.Setenv("ALLREAL_CONFIG_PROFILE", "dev")
 
 	files := ListEditableFiles()
-	if len(files) != 3 {
-		t.Fatalf("len(files) = %d, want 3", len(files))
+	if len(files) < 3 {
+		t.Fatalf("len(files) = %d, want >= 3", len(files))
 	}
 
 	wantClaudePath := filepath.Join(homeDir, ".claude", "settings-dev.json")
