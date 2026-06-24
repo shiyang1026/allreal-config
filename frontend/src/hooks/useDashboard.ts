@@ -3,6 +3,7 @@ import {
   ConfigureClaudeCode,
   ConfigureCodex,
   GetClaudeCodeModels,
+  GetCodexModels,
   GetConfigStatus,
   GetServerURL,
   GetTokens,
@@ -11,7 +12,7 @@ import {
   RevealTokenKey,
   UpdateServerURL,
 } from '../../wailsjs/go/main/App'
-import type { ClaudeModelSelection, ConfigStatus, Message, ModelOption, Token } from '../types/dashboard'
+import type { ClaudeModelSelection, CodexSelection, ConfigStatus, Message, ModelOption, Token } from '../types/dashboard'
 
 const TOKEN_REFRESH_COOLDOWN_MS = 5000
 const STATUS_REFRESH_COOLDOWN_MS = 3000
@@ -21,15 +22,23 @@ export function useDashboard(onLogout: () => void) {
   const [tokens, setTokens] = useState<Token[]>([])
   const [selectedToken, setSelectedToken] = useState<number | null>(null)
   const [selectedTokenKey, setSelectedTokenKey] = useState('')
+
   const [claudeModels, setClaudeModels] = useState<ModelOption[]>([])
-  const [claudeModelsCollapsed, setClaudeModelsCollapsed] = useState(false)
   const [claudeSelection, setClaudeSelection] = useState<ClaudeModelSelection>({
     haiku: '',
     sonnet: '',
     opus: '',
     subagent: '',
   })
-  const [loadingModels, setLoadingModels] = useState(false)
+  const [loadingClaudeModels, setLoadingClaudeModels] = useState(false)
+
+  const [codexModels, setCodexModels] = useState<ModelOption[]>([])
+  const [codexSelection, setCodexSelection] = useState<CodexSelection>({
+    model: '',
+    reasoningEffort: 'high',
+  })
+  const [loadingCodexModels, setLoadingCodexModels] = useState(false)
+
   const [configStatus, setConfigStatus] = useState<ConfigStatus | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
   const [loading, setLoading] = useState('')
@@ -88,10 +97,7 @@ export function useDashboard(onLogout: () => void) {
       setTokens(activeTokens)
       setSelectedToken((current) => {
         if (!current || activeTokens.some((token: Token) => token.id === current)) return current
-        setSelectedTokenKey('')
-        setClaudeModels([])
-        setClaudeModelsCollapsed(false)
-        setClaudeSelection({ haiku: '', sonnet: '', opus: '', subagent: '' })
+        resetAllSelections()
         return null
       })
       showMessage('success', '令牌列表已刷新')
@@ -103,40 +109,71 @@ export function useDashboard(onLogout: () => void) {
     }
   }
 
-  const loadClaudeModelsForToken = (tokenID: number) => {
+  const resetAllSelections = () => {
+    setSelectedTokenKey('')
+    setClaudeModels([])
+    setClaudeSelection({ haiku: '', sonnet: '', opus: '', subagent: '' })
+    setCodexModels([])
+    setCodexSelection({ model: '', reasoningEffort: 'high' })
+  }
+
+  const loadModelsForToken = (tokenID: number) => {
     if (modelLoadTimerRef.current) clearTimeout(modelLoadTimerRef.current)
 
     const requestID = modelLoadRequestRef.current + 1
     modelLoadRequestRef.current = requestID
     setSelectedToken(tokenID)
-    setSelectedTokenKey('')
-    setClaudeModels([])
-    setClaudeModelsCollapsed(false)
-    setClaudeSelection({ haiku: '', sonnet: '', opus: '', subagent: '' })
-    setLoadingModels(true)
+    resetAllSelections()
+    setLoadingClaudeModels(true)
+    setLoadingCodexModels(true)
 
     modelLoadTimerRef.current = setTimeout(async () => {
       try {
         const key = await RevealTokenKey(tokenID)
-        const models = await GetClaudeCodeModels(key)
         if (modelLoadRequestRef.current !== requestID) return
         setSelectedTokenKey(key)
-        setClaudeModels(models || [])
-        const fallback = models?.[0]?.id || ''
-        const sonnet = pickModel(models || [], 'sonnet', fallback)
-        setClaudeSelection({
-          haiku: pickModel(models || [], 'haiku', fallback),
-          sonnet,
-          opus: pickModel(models || [], 'opus', fallback),
-          subagent: sonnet,
-        })
+
+        const [claudeResult, codexResult] = await Promise.allSettled([
+          GetClaudeCodeModels(key),
+          GetCodexModels(key),
+        ])
+
+        if (modelLoadRequestRef.current !== requestID) return
+
+        if (claudeResult.status === 'fulfilled') {
+          const models = claudeResult.value || []
+          setClaudeModels(models)
+          const fallback = models[0]?.id || ''
+          const sonnet = pickModel(models, 'sonnet', fallback)
+          setClaudeSelection({
+            haiku: pickModel(models, 'haiku', fallback),
+            sonnet,
+            opus: pickModel(models, 'opus', fallback),
+            subagent: sonnet,
+          })
+        } else {
+          showMessage('error', claudeResult.reason?.message || '加载 Claude 模型失败')
+        }
+
+        if (codexResult.status === 'fulfilled') {
+          const models = codexResult.value || []
+          setCodexModels(models)
+          const fallback = pickModel(models, 'gpt', models[0]?.id || '')
+          setCodexSelection({
+            model: pickModel(models, 'gpt-5.5', fallback),
+            reasoningEffort: 'high',
+          })
+        } else {
+          showMessage('error', codexResult.reason?.message || '加载 CodeX 模型失败')
+        }
       } catch (e: any) {
         if (modelLoadRequestRef.current === requestID) {
           showMessage('error', e?.message || '加载模型失败')
         }
       } finally {
         if (modelLoadRequestRef.current === requestID) {
-          setLoadingModels(false)
+          setLoadingClaudeModels(false)
+          setLoadingCodexModels(false)
         }
       }
     }, MODEL_LOAD_DEBOUNCE_MS)
@@ -144,6 +181,10 @@ export function useDashboard(onLogout: () => void) {
 
   const updateClaudeSelection = (field: keyof ClaudeModelSelection, value: string) => {
     setClaudeSelection((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const updateCodexSelection = (field: keyof CodexSelection, value: string) => {
+    setCodexSelection((prev) => ({ ...prev, [field]: value }))
   }
 
   const configure = async (target: 'claude' | 'codex') => {
@@ -163,7 +204,11 @@ export function useDashboard(onLogout: () => void) {
             opus_model: claudeSelection.opus,
             subagent_model: claudeSelection.subagent,
           })
-        : await ConfigureCodex(key)
+        : await ConfigureCodex({
+            auth_token: key,
+            model: codexSelection.model,
+            reasoning_effort: codexSelection.reasoningEffort,
+          })
       if (result.success) {
         showMessage('success', result.message)
         setConfigStatus(await GetConfigStatus())
@@ -204,9 +249,7 @@ export function useDashboard(onLogout: () => void) {
       await UpdateServerURL(nextURL)
       setServerURL(nextURL)
       setSelectedToken(null)
-      setSelectedTokenKey('')
-      setClaudeModels([])
-      setClaudeSelection({ haiku: '', sonnet: '', opus: '', subagent: '' })
+      resetAllSelections()
       await loadData()
       showMessage('success', '中转站地址已更新')
     } catch (e: any) {
@@ -232,19 +275,24 @@ export function useDashboard(onLogout: () => void) {
     }
   }
 
-  const canConfigureClaude = !!selectedToken && !loading && !loadingModels
+  const canConfigureClaude = !!selectedToken && !loading && !loadingClaudeModels
     && !!claudeSelection.haiku
     && !!claudeSelection.sonnet
     && !!claudeSelection.opus
     && !!claudeSelection.subagent
 
+  const canConfigureCodex = !!selectedToken && !loading && !loadingCodexModels
+    && !!codexSelection.model
+
   return {
     tokens,
     selectedToken,
     claudeModels,
-    claudeModelsCollapsed,
     claudeSelection,
-    loadingModels,
+    loadingClaudeModels,
+    codexModels,
+    codexSelection,
+    loadingCodexModels,
     configStatus,
     message,
     loading,
@@ -253,11 +301,12 @@ export function useDashboard(onLogout: () => void) {
     refreshingTokens,
     refreshingStatus,
     canConfigureClaude,
-    selectToken: loadClaudeModelsForToken,
+    canConfigureCodex,
+    selectToken: loadModelsForToken,
     refreshTokens,
     updateClaudeSelection,
+    updateCodexSelection,
     changeServerURL,
-    toggleClaudeModelsCollapsed: () => setClaudeModelsCollapsed((collapsed) => !collapsed),
     configureClaude: () => configure('claude'),
     configureCodex: () => configure('codex'),
     refreshData: loadData,

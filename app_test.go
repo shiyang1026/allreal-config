@@ -22,7 +22,11 @@ func TestConfigureCodexWritesSelectedProviderAndOpenAIKey(t *testing.T) {
 	app := NewApp()
 	app.serverURL = "https://cn.allrealai.com"
 
-	result, err := app.ConfigureCodex("sk-user-token")
+	result, err := app.ConfigureCodex(CodexConfigRequest{
+		AuthToken:       "sk-user-token",
+		Model:           "gpt-5.5",
+		ReasoningEffort: "high",
+	})
 	if err != nil {
 		t.Fatalf("ConfigureCodex returned error: %v", err)
 	}

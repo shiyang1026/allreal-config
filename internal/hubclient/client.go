@@ -201,6 +201,50 @@ func (c *Client) GetClaudeCodeModels(tokenKey string) ([]apptypes.ModelOption, e
 	return models, nil
 }
 
+func (c *Client) GetCodexModels(tokenKey string) ([]apptypes.ModelOption, error) {
+	req, err := http.NewRequest("GET", c.serverURL+"/v1/models", nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+tokenKey)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("请求模型列表失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("读取模型列表失败: %v", err)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("模型列表请求失败: HTTP %d", resp.StatusCode)
+	}
+
+	var raw struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, fmt.Errorf("模型列表解析失败: %v", err)
+	}
+
+	models := make([]apptypes.ModelOption, 0, len(raw.Data))
+	for _, item := range raw.Data {
+		id := strings.TrimSpace(item.ID)
+		if id == "" {
+			continue
+		}
+		models = append(models, apptypes.ModelOption{ID: id, DisplayName: id})
+	}
+	if len(models) == 0 {
+		return nil, fmt.Errorf("当前令牌没有可用模型")
+	}
+	return models, nil
+}
+
 func setAuthHeaders(req *http.Request, accessToken string, userID int) {
 	req.Header.Set("Authorization", accessToken)
 	if userID > 0 {

@@ -47,6 +47,11 @@ export interface ClaudeModelSelection {
   subagent: string
 }
 
+export interface CodexSelection {
+  model: string
+  reasoningEffort: string
+}
+
 export interface SelectOption {
   value: string
   label: string

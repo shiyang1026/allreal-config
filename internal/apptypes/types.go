@@ -103,6 +103,12 @@ type ClaudeCodeConfigRequest struct {
 	SubagentModel string `json:"subagent_model"`
 }
 
+type CodexConfigRequest struct {
+	AuthToken       string `json:"auth_token"`
+	Model           string `json:"model"`
+	ReasoningEffort string `json:"reasoning_effort"`
+}
+
 type Editor struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`

@@ -22,6 +22,10 @@ export function GetClaudeCodeModels(arg1) {
   return window['go']['main']['App']['GetClaudeCodeModels'](arg1);
 }
 
+export function GetCodexModels(arg1) {
+  return window['go']['main']['App']['GetCodexModels'](arg1);
+}
+
 export function GetConfigStatus() {
   return window['go']['main']['App']['GetConfigStatus']();
 }

@@ -84,6 +84,7 @@ type SaveConfigFileRequest = apptypes.SaveConfigFileRequest
 type LaunchContext = apptypes.LaunchContext
 type ModelOption = apptypes.ModelOption
 type ClaudeCodeConfigRequest = apptypes.ClaudeCodeConfigRequest
+type CodexConfigRequest = apptypes.CodexConfigRequest
 type Editor = apptypes.Editor
 
 type configEditorProcess interface {
@@ -219,8 +220,12 @@ func (a *App) ConfigureClaudeCode(config ClaudeCodeConfigRequest) (*Result, erro
 
 // ---------- 配置 CodeX ----------
 
-func (a *App) ConfigureCodex(tokenKey string) (*Result, error) {
-	return configfile.WriteCodex(a.serverURL, tokenKey)
+func (a *App) GetCodexModels(tokenKey string) ([]ModelOption, error) {
+	return a.hub().GetCodexModels(tokenKey)
+}
+
+func (a *App) ConfigureCodex(config apptypes.CodexConfigRequest) (*Result, error) {
+	return configfile.WriteCodex(a.serverURL, config)
 }
 
 func (a *App) GetAvailableEditors() []Editor {

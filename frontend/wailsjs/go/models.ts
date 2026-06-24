@@ -20,6 +20,22 @@ export namespace apptypes {
 	        this.subagent_model = source["subagent_model"];
 	    }
 	}
+	export class CodexConfigRequest {
+	    auth_token: string;
+	    model: string;
+	    reasoning_effort: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CodexConfigRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.auth_token = source["auth_token"];
+	        this.model = source["model"];
+	        this.reasoning_effort = source["reasoning_effort"];
+	    }
+	}
 	export class ConfigFileContent {
 	    id: string;
 	    label: string;

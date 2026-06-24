@@ -6,11 +6,13 @@ export function CheckServer(arg1:string):Promise<apptypes.ServerStatus>;
 
 export function ConfigureClaudeCode(arg1:apptypes.ClaudeCodeConfigRequest):Promise<apptypes.Result>;
 
-export function ConfigureCodex(arg1:string):Promise<apptypes.Result>;
+export function ConfigureCodex(arg1:apptypes.CodexConfigRequest):Promise<apptypes.Result>;
 
 export function GetAvailableEditors():Promise<Array<apptypes.Editor>>;
 
 export function GetClaudeCodeModels(arg1:string):Promise<Array<apptypes.ModelOption>>;
+
+export function GetCodexModels(arg1:string):Promise<Array<apptypes.ModelOption>>;
 
 export function GetConfigStatus():Promise<apptypes.ConfigStatus>;
 
