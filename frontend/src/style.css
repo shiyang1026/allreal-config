@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+@font-face {
+    font-family: 'Pacifico';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./assets/fonts/pacifico-v23-latin-regular.woff2') format('woff2');
+}
+
+.font-script {
+    font-family: 'Pacifico', 'Apple Chancery', cursive;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
 html {
     color-scheme: dark;
     background-color: #0b1120;

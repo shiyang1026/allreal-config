@@ -41,7 +41,7 @@ export default function LoginPage({ onLogin }: Props) {
          style={{ '--wails-draggable': 'drag' } as React.CSSProperties}>
       <div className="w-full max-w-sm" style={{ '--wails-draggable': 'no-drag' } as React.CSSProperties}>
         <div className="mb-8 border-b border-slate-800 pb-4">
-          <h1 className="text-lg font-semibold text-slate-100">AllReal Config</h1>
+          <h1 className="font-script text-5xl text-slate-100 leading-tight">AllReal Config</h1>
           <p className="mt-1 text-sm text-slate-500">AI 编程工具一键配置助手</p>
         </div>
 
