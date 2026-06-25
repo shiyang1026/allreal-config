@@ -1,6 +1,7 @@
 package hubclient
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -46,8 +47,14 @@ func (c *Client) CheckServer(serverURL string) (*apptypes.ServerStatus, string, 
 }
 
 func (c *Client) Login(username, password string) (*apptypes.UserInfo, error) {
-	body := fmt.Sprintf(`{"username":"%s","password":"%s"}`, username, password)
-	resp, err := c.httpClient.Post(c.serverURL+"/api/user/login", "application/json", strings.NewReader(body))
+	body, err := json.Marshal(map[string]string{
+		"username": username,
+		"password": password,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("请求构造失败: %v", err)
+	}
+	resp, err := c.httpClient.Post(c.serverURL+"/api/user/login", "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, fmt.Errorf("连接失败: %v", err)
 	}
@@ -55,7 +62,7 @@ func (c *Client) Login(username, password string) (*apptypes.UserInfo, error) {
 
 	var apiResp apptypes.APIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
-		return nil, fmt.Errorf("响应解析失败")
+		return nil, fmt.Errorf("响应解析失败: %v", err)
 	}
 	if !apiResp.Success {
 		return nil, fmt.Errorf("%s", apiResp.Message)
@@ -63,7 +70,7 @@ func (c *Client) Login(username, password string) (*apptypes.UserInfo, error) {
 
 	var user apptypes.UserInfo
 	if err := json.Unmarshal(apiResp.Data, &user); err != nil {
-		return nil, fmt.Errorf("用户信息解析失败")
+		return nil, fmt.Errorf("用户信息解析失败: %v", err)
 	}
 	return &user, nil
 }
