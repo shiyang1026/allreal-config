@@ -51,6 +51,7 @@ model_reasoning_effort = "%s"
 name = "allreal"
 base_url = "%s/v1"
 wire_api = "responses"
+requires_openai_auth = true
 `, strings.TrimSpace(config.Model), reasoningEffort, strings.TrimRight(serverURL, "/"))
 
 	if err := os.WriteFile(configPath, []byte(configContent), 0600); err != nil {
