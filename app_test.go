@@ -47,6 +47,7 @@ func TestConfigureCodexWritesSelectedProviderAndOpenAIKey(t *testing.T) {
 		`name = "allreal"`,
 		`base_url = "https://cn.allrealai.com/v1"`,
 		`wire_api = "responses"`,
+		`requires_openai_auth = true`,
 	}
 	for _, part := range wantConfigParts {
 		if !strings.Contains(config, part) {
